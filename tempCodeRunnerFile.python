@@ -1,0 +1,63 @@
+# %%
+import os
+import requests
+from langchain_community.document_loaders import PyPDFDirectoryLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter  
+from dotenv import load_dotenv
+from langchain_huggingface import HuggingFaceEmbeddings
+import numpy as np
+
+# %%
+load_dotenv()
+
+def load_pdf(file_path):
+    loader = PyPDFDirectoryLoader(file_path)
+    documents = loader.load()
+    return documents
+
+# %%
+def text_split(extracted_data):
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    text_chunks = text_splitter.split_documents(extracted_data)
+    return text_chunks
+
+
+
+
+# %%
+
+pdf_path = "./database/pdf"
+extracted_data = load_pdf(pdf_path)
+print(extracted_data)
+
+
+# %%
+text_chunks = text_split(extracted_data)
+print(text_chunks)
+
+# %%
+def extract_page_contents(extracted_data):
+    # List to hold all page contents
+    page_contents = []
+    
+    for doc in extracted_data:
+        # Append the page_content of each Document to the list
+        page_contents.append(doc.page_content)
+    
+    return page_contents
+
+# %%
+page_contents = extract_page_contents(text_chunks)
+print(page_contents[0:10])
+
+# %%
+embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+query_result = embeddings.embed_query(page_contents[0])
+
+# %%
+print(np.array(query_result).shape)
+
+# %%
+
+
+
