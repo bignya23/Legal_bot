@@ -17,11 +17,12 @@ collection = database["ipc"]
 
 model_embedding = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
-page_content = "Fine leviable within six years, of during imprisonment. Death not to discharge property from liability"
+#Query for the seach in database
+query = "car accident"
 
 
 # Generate embedding for the search query
-query_embedding = model_embedding.embed_query(page_content)
+query_embedding = model_embedding.embed_query(query)
 
 # Sample vector search pipeline
 pipeline = [

@@ -1,38 +1,47 @@
 import os
-import google.generativeai as genai
-import dotenv
+from dotenv import load_dotenv
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.prompts import ChatPromptTemplate
 
 # Load environment variables
-dotenv.load_dotenv()
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+load_dotenv()
 
-# Create the model
-generation_config = {
-    "temperature": 1,
-    "top_p": 0.95,
-    "top_k": 40,
-    "max_output_tokens": 8192,
-    "response_mime_type": "text/plain",
-}
 
-model = genai.GenerativeModel(
-    model_name="gemini-1.5-pro-002",
-    generation_config=generation_config,
+os.environ["GOOGLE_API_KEY"] = os.getenv("GEMINI_API_KEY")
+os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
+os.environ["LANGSMITH_TRACING"] = "true"
+
+
+llm = ChatGoogleGenerativeAI(
+    model="gemini-1.5-pro-002",
+    temperature=0,
+    max_tokens=8192,
+    timeout=None,
+    max_retries=2,
+    top_k= 40,
+    top_p= 0.95
 )
 
-# Start the chat session
-chat_session = model.start_chat(history=[])
+prompt = ChatPromptTemplate.from_template(
+"""
+Give sarcastic answers to every question I ask:
 
-# Initialize user_input
+ {input}
+
+"""
+    
+)
+chain = prompt | llm
 user_input = ""
 
-while user_input.lower() != "stop":  # Continue until the user types 'stop'
-    # Prompt the user for input
-    user_input = input("You: ")  # Get user input
+while user_input != "stop":
+    user_input = input("You : ")
+    output = chain.invoke(
+        {
+            "input": {user_input},
+        }
+    )
 
-    if user_input.lower() != "stop":  # Avoid sending 'stop' to the model
-        # Send the user's input to the model
-        response = chat_session.send_message(user_input)
+    print(output.content)
 
-        # Print the model's response
-        print("Bot:", response.text)
+
